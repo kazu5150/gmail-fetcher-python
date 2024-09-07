@@ -10,6 +10,7 @@ from email.header import decode_header
 # 必要なスコープを設定
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
+
 def get_gmail_service():
     creds = None
     if os.path.exists('token.pickle'):
@@ -24,15 +25,17 @@ def get_gmail_service():
             creds = flow.run_local_server(port=0)
         with open('token.pickle', 'wb') as token:
             pickle.dump(creds, token)
-    
+
     service = build('gmail', 'v1', credentials=creds)
     return service
+
 
 def decode_subject(subject):
     decoded_subject, encoding = decode_header(subject)[0]
     if isinstance(decoded_subject, bytes):
         return decoded_subject.decode(encoding or 'utf-8')
     return decoded_subject
+
 
 def get_message_body(message):
     if 'payload' not in message:
@@ -41,30 +44,30 @@ def get_message_body(message):
     if 'body' in message['payload']:
         if 'data' in message['payload']['body']:
             return base64.urlsafe_b64decode(message['payload']['body']['data']).decode('utf-8')
-    
+
     if 'parts' in message['payload']:
         for part in message['payload']['parts']:
             if part['mimeType'] == 'text/plain':
                 if 'data' in part['body']:
                     return base64.urlsafe_b64decode(part['body']['data']).decode('utf-8')
-    
+
     return "Body could not be decoded"
 
+
 def list_messages_with_title_and_body(service, title_query, user_id='me', max_results=10):
+    messages = []
     try:
         query = f"subject:{title_query}"
         response = service.users().messages().list(userId=user_id, q=query, maxResults=max_results).execute()
-        messages = response.get('messages', [])
-        
-        if not messages:
+        message_list = response.get('messages', [])
+
+        if not message_list:
             print(f"No messages found with '{title_query}' in the title")
-            return
-        
-        print(f"Messages with '{title_query}' in the title:")
-        for message in messages:
+            return messages
+
+        for message in message_list:
             msg = service.users().messages().get(userId=user_id, id=message['id'], format='full').execute()
-            
-            # メールの件名と送信者を取得
+
             subject = ""
             sender = ""
             for header in msg['payload']['headers']:
@@ -74,15 +77,16 @@ def list_messages_with_title_and_body(service, title_query, user_id='me', max_re
                     sender = header['value']
                 if subject and sender:
                     break
-            
-            # メールの本文を取得
+
             body = get_message_body(msg)
-            
-            print(f"Subject: {subject}")
-            print(f"From: {sender}")
-            print(f"Body: {body[:500]}...")  # 最初の500文字のみ表示
-            print("--------------------")
-    
+
+            messages.append({
+                'subject': subject,
+                'sender': sender,
+                'body': body
+            })
+        return messages
+
     except Exception as error:
         print(f'An error occurred: {error}')
-        
+        return messages
