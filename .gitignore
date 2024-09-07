@@ -1,0 +1,19 @@
+# Python仮想環境
+myenv/
+
+# 認証情報
+credentials.json
+
+# 環境変数
+.env
+
+# Pythonのキャッシュファイル
+__pycache__/
+*.py[cod]
+
+# OS生成ファイル
+.DS_Store
+Thumbs.db
+
+# トークンファイル
+token.pickle
