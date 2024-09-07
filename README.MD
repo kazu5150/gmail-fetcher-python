@@ -8,12 +8,33 @@ Gmail Fetcher は Python を使用して、特定の文字列を件名に含む 
 - 環境変数を使用して検索クエリと取得するメッセージ数をカスタマイズ可能
 - 取得したメールの件名、送信者、スニペットを表示
 
+## フォルダ構造
+
+```
+gmail-fetcher/
+│
+├── src/
+│   └── gmail_fetcher.py      # メインのPythonスクリプト
+│
+├── .env.example              # 環境変数の例
+├── .env                      # 実際の環境変数（.gitignoreに追加）
+├── .gitignore                # Gitが無視するファイルの設定
+├── README.md                 # プロジェクトの説明書（このファイル）
+├── requirements.txt          # 必要なPythonパッケージのリスト
+├── credentials.json          # Google Cloud Platformの認証情報（.gitignoreに追加）
+└── token.pickle              # アクセストークン（自動生成、.gitignoreに追加）
+```
+
 ## 前提条件
 
 - Python 3.6 以上
 - Google Cloud Platform のプロジェクト
 - Gmail API の有効化
 - OAuth 2.0 クライアント ID の作成
+
+## Google Cloud Platform (GCP) の設定
+
+[前回の内容をそのまま維持]
 
 ## セットアップ
 
@@ -35,13 +56,27 @@ Gmail Fetcher は Python を使用して、特定の文字列を件名に含む 
    pip install -r requirements.txt
    ```
 
-4. Google Cloud Console から OAuth 2.0 クライアント ID をダウンロードし、`credentials.json` としてプロジェクトのルートディレクトリに保存します。
+4. `.env` ファイルを作成します：
+   - リポジトリ内の `.env.example` ファイルをコピーして `.env` という名前で保存します：
+     ```
+     cp .env.example .env
+     ```
+   - `.env` ファイルを開き、必要に応じて値を変更します：
+     ```
+     GMAIL_QUERY_STRING=重要
+     MAX_RESULTS=10
+     ```
 
-5. `.env` ファイルを作成し、以下の内容を追加します（必要に応じて値を変更してください）：
-   ```
-   GMAIL_QUERY_STRING=重要
-   MAX_RESULTS=10
-   ```
+5. Google Cloud Platform から取得した `credentials.json` ファイルをプロジェクトのルートディレクトリに配置します。
+
+## 環境変数の設定
+
+`.env` ファイルは、アプリケーションの設定を環境変数として保存するために使用されます。以下の変数を設定できます：
+
+- `GMAIL_QUERY_STRING`: Gmail の検索クエリ文字列（デフォルト: '重要'）
+- `MAX_RESULTS`: 取得するメッセージの最大数（デフォルト: 10）
+
+注意: `.env` ファイルには機密情報が含まれる可能性があるため、このファイルは `.gitignore` に追加されており、リポジトリにコミットされません。代わりに、`.env.example` ファイルがテンプレートとして提供されています。
 
 ## 使用方法
 
@@ -55,13 +90,21 @@ python src/gmail_fetcher.py
 
 ## カスタマイズ
 
+環境変数を変更することで、スクリプトの動作をカスタマイズできます：
+
 - 検索クエリを変更するには、`.env` ファイルの `GMAIL_QUERY_STRING` の値を変更します。
 - 取得するメッセージの数を変更するには、`.env` ファイルの `MAX_RESULTS` の値を変更します。
+
+変更後は、スクリプトを再実行して新しい設定を適用します。
+
+## トラブルシューティング
+
+[前回の内容をそのまま維持]
 
 ## 注意事項
 
 - このスクリプトは個人的な使用やテスト目的で作成されています。大量のリクエストを送信しないよう注意してください。
-- `credentials.json` と `token.pickle` には機密情報が含まれているため、`.gitignore` に追加されていることを確認し、公開リポジトリにアップロードしないでください。
+- `credentials.json`、`token.pickle`、`.env` ファイルには機密情報が含まれているため、`.gitignore` に追加されていることを確認し、公開リポジトリにアップロードしないでください。
 
 ## ライセンス
 
