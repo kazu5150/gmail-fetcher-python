@@ -1,37 +1,35 @@
-# Gmail Fetcher
+# Gmail-Dify Integration Project
 
-Gmail Fetcher は Python を使用して、特定の文字列を件名に含む Gmail メッセージを取得するスクリプトです。
+このプロジェクトは、Gmailから特定の条件に合致するメールを取得し、その内容をDify APIを使用して解析するPythonスクリプトです。解析結果は構造化されたデータとして出力されます。
 
 ## 機能
 
-- Gmail API を使用して特定の件名を持つメールを検索
-- 環境変数を使用して検索クエリと取得するメッセージ数をカスタマイズ可能
-- 取得したメールの件名、送信者、スニペットを表示
+- Gmailから特定の件名を持つメールを検索・取得
+- 取得したメール本文をDify APIに送信して解析
+- 解析結果（日付、アイテム、数量、配送先情報など）を構造化して表示
 
-## フォルダ構造
+## ファイル構成
 
 ```
-gmail-fetcher/
+gmail-dify-integration/
 │
 ├── src/
-│   └── gmail_fetcher.py      # メインのPythonスクリプト
+│   └── gmail_fetcher.py   # Gmail APIを使用してメールを取得する機能を実装
 │
-├── .env.example              # 環境変数の例
-├── .env                      # 実際の環境変数（.gitignoreに追加）
-├── .gitignore                # Gitが無視するファイルの設定
-├── README.md                 # プロジェクトの説明書（このファイル）
-├── requirements.txt          # 必要なPythonパッケージのリスト
-├── credentials.json          # Google Cloud Platformの認証情報（.gitignoreに追加）
-└── token.pickle              # アクセストークン（自動生成、.gitignoreに追加）
+├── main.py                # メインスクリプト。プログラムのエントリーポイント
+├── .env                   # 環境変数設定ファイル（gitignoreに含める）
+├── .env.example           # 環境変数の例示ファイル
+├── requirements.txt       # 必要なPythonパッケージのリスト
+├── credentials.json       # Google OAuth認証情報（gitignoreに含める）
+├── .gitignore             # Gitが無視すべきファイルのリスト
+└── README.md              # プロジェクトの説明書（このファイル）
 ```
 
 ## 前提条件
 
-- Python 3.6 以上
-- Google Cloud Platform のプロジェクト
-- Gmail API の有効化
-- OAuth 2.0 クライアント ID の作成
-
+- Python 3.6以上
+- Google Cloud Platformのプロジェクト（Gmail API有効化済み）
+- Dify APIのアカウントとAPIキー
 
 ## Google Cloud Platform (GCP) の設定
 
@@ -65,19 +63,24 @@ gmail-fetcher/
 6. ダウンロードしたJSONファイルの名前を `credentials.json` に変更し、プロジェクトのルートディレクトリに配置します。
 
 
+## Difyワークフローappの作成
+
+![Difyワークフロー](image/dify_workflow.png)
+
+
 ## セットアップ
 
-1. このリポジトリをクローンします：
+1. リポジトリをクローンします：
    ```
-   git clone https://github.com/yourusername/gmail-fetcher.git
-   cd gmail-fetcher
+   git clone https://github.com/yourusername/gmail-dify-integration.git
+   cd gmail-dify-integration
    ```
 
 2. 仮想環境を作成し、アクティベートします：
    ```
-   python -m venv myenv
-   source myenv/bin/activate  # Unix or MacOS
-   myenv\Scripts\activate  # Windows
+   python -m venv venv
+   source venv/bin/activate  # Unix or MacOS
+   venv\Scripts\activate  # Windows
    ```
 
 3. 必要なパッケージをインストールします：
@@ -85,63 +88,69 @@ gmail-fetcher/
    pip install -r requirements.txt
    ```
 
-4. `.env` ファイルを作成します：
-   - リポジトリ内の `.env.example` ファイルをコピーして `.env` という名前で保存します：
-     ```
-     cp .env.example .env
-     ```
-   - `.env` ファイルを開き、必要に応じて値を変更します：
-     ```
-     GMAIL_QUERY_STRING=重要
-     MAX_RESULTS=10
-     ```
+4. `.env.example`ファイルを`.env`にコピーし、必要な情報を入力します：
+   ```
+   cp .env.example .env
+   ```
+   そして、`.env`ファイルを編集して以下の環境変数を設定します：
+   ```
+   GMAIL_QUERY_STRING=Your Gmail Search Query
+   MAX_RESULTS=10
+   DIFY_API_URL=https://api.dify.ai/v1/workflows/run
+   DIFY_API_KEY=Your Dify API Key
+   ```
 
-5. Google Cloud Platform から取得した `credentials.json` ファイルをプロジェクトのルートディレクトリに配置します。
-
-## 環境変数の設定
-
-`.env` ファイルは、アプリケーションの設定を環境変数として保存するために使用されます。以下の変数を設定できます：
-
-- `GMAIL_QUERY_STRING`: Gmail の検索クエリ文字列（デフォルト: '重要'）
-- `MAX_RESULTS`: 取得するメッセージの最大数（デフォルト: 10）
-
-注意: `.env` ファイルには機密情報が含まれる可能性があるため、このファイルは `.gitignore` に追加されており、リポジトリにコミットされません。代わりに、`.env.example` ファイルがテンプレートとして提供されています。
+5. Google Cloud Consoleから認証情報（OAuth 2.0クライアントID）をダウンロードし、`credentials.json`としてプロジェクトのルートディレクトリに保存します。
 
 ## 使用方法
 
-スクリプトを実行するには、以下のコマンドを使用します：
+1. スクリプトを実行します：
+   ```
+   python main.py
+   ```
+
+2. 初回実行時は、Googleアカウントの認証を求められます。ブラウザでの認証を完了してください。
+
+3. スクリプトは指定された条件に合致するGmailメッセージを取得し、Dify APIを使用して解析します。
+
+4. 解析結果が構造化されたフォーマットで表示されます。
+
+## 出力例
 
 ```
-python src/gmail_fetcher.py
+Subject: 重要な配送情報
+From: sender@example.com
+Body: メール本文の一部...
+
+Dify Response:
+日付: 2024/09/06
+アイテム: ロゴ封筒（角2）
+数量: 100
+配送先名: 所沢市役所
+郵便番号: 359-xxxx
+配送先住所: 埼玉県 所沢市xxxxxxxxxx
+配送先電話番号: 04-xxx-xxxx
+
+--------------------
 ```
-
-初回実行時には、ブラウザが開いて Gmail アカウントへのアクセス許可を求められます。許可すると、アクセストークンが `token.pickle` ファイルに保存され、以降の実行時に再利用されます。
-
-## カスタマイズ
-
-環境変数を変更することで、スクリプトの動作をカスタマイズできます：
-
-- 検索クエリを変更するには、`.env` ファイルの `GMAIL_QUERY_STRING` の値を変更します。
-- 取得するメッセージの数を変更するには、`.env` ファイルの `MAX_RESULTS` の値を変更します。
-
-変更後は、スクリプトを再実行して新しい設定を適用します。
-
-## トラブルシューティング
-
-[前回の内容をそのまま維持]
 
 ## 注意事項
 
-- このスクリプトは個人的な使用やテスト目的で作成されています。大量のリクエストを送信しないよう注意してください。
-- `credentials.json`、`token.pickle`、`.env` ファイルには機密情報が含まれているため、`.gitignore` に追加されていることを確認し、公開リポジトリにアップロードしないでください。
+- このスクリプトは、Gmail APIとDify APIの利用制限に従います。大量のリクエストを送信する場合は、各サービスの利用規約を確認してください。
+- `credentials.json`と`.env`ファイルには機密情報が含まれているため、Gitリポジトリにコミットしないよう注意してください。
+
+## トラブルシューティング
+
+- 認証エラーが発生した場合は、`credentials.json`の設定と、Google Cloud Consoleでの権限設定を確認してください。
+- Dify APIのエラーが発生した場合は、APIキーと設定を確認してください。
 
 ## ライセンス
 
-このプロジェクトは [MIT ライセンス](LICENSE) の下で公開されています。
+このプロジェクトは[MITライセンス](LICENSE)の下で公開されています。
 
 ## 貢献
 
-問題の報告や改善の提案は、GitHub の Issue 機能をご利用ください。プルリクエストも歓迎します。
+バグ報告や機能リクエストは、GitHubのIssueで受け付けています。プルリクエストも歓迎します。
 
 
 
