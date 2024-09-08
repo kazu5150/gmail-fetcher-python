@@ -43,6 +43,8 @@ def parse_dify_response(response):
     if 'data' in response and 'outputs' in response['data']:
         outputs = response['data']['outputs']
         return f"""
+\n\n    
+_/_/_/_/Difyからの返答_/_/_/_/\n
 日付: {outputs.get('date', 'N/A')}
 アイテム: {outputs.get('item', 'N/A')}
 数量: {outputs.get('item_number', 'N/A')}
@@ -50,6 +52,7 @@ def parse_dify_response(response):
 郵便番号: {outputs.get('postal_number', 'N/A')}
 配送先住所: {outputs.get('delvery_address', 'N/A')}
 配送先電話番号: {outputs.get('delivery_place_phone', 'N/A')}
+\n
 """
     return "Unable to parse Dify response"
 
